@@ -43,6 +43,7 @@ void *pwm_thread(void *vargp)
        {
             for(i = 0; i < 3; i++)
             {
+                memset(buff, 0, sizeof(buff));
                 strncpy(temp, ACM_PWM_IN, sizeof(temp));
                 buff[0] = '0' + i;  //hwmonx  x = 0-2
                 strncat(&buff[1], ACM_PWM_FILE, 6); //add  /pwm0 file to the end
