@@ -368,20 +368,22 @@ int acm_rd_req(unsigned short blk_num)
 
         //Do file write to acm_out with requested data
         fp = open(ACM_OUT, O_RDWR);
-        if(fp > 0)
+        if(fp >= 0)
         {
             //We can send data
             sz = write(fp, (void *)&req, acm_idx[blk_num].blk_size + 2 + 3); //cmd hdr + block num + block data
             printf("We wrote %x bytes to ACM driver to send out(read request)\n", sz);
+            close(fp);
+            return(0);
         }    
-        close(fp);
     }
+    return(1);
 }
 /*
      Incoming data from ACM.
      Triggered by poll() on out file
 */
-int acm_wr_req(unsigned short blk_num, unsigned short sz, unsigned char *buff)
+void acm_wr_req(unsigned short blk_num, unsigned short sz, unsigned char *buff)
 {
     unsigned char out[512];
 
@@ -426,12 +428,12 @@ void *poll_thread(void *vargp)
        do
        {
             input_fd = open(ACM_IN, O_RDWR);
-            if(input_fd == -1)
+            if(input_fd < 0)
             {
                 sleep(2);
             }
             printf("Opening sysfs input interface for polling: %s, r: %x\n",ACM_IN, input_fd);
-       }while(input_fd == -1); //wait forever for the file to show up.  Driver provides it
+       }while(input_fd < 0); //wait forever for the file to show up.  Driver provides it
 
        //wait until we get a file so we know the driver is loaded
        acm_ping_init();   
@@ -493,11 +495,20 @@ void *poll_thread(void *vargp)
                     {   
                         //Error in size.
                         printf("Size error reading block.  Read %x bytes, size: %x\n", sz, req.cmd_size.big_end_req_sz);
-                        if(input_fd)
+                        if(input_fd >= 0)
                         {
                            close(input_fd);
                         }
-                        input_fd = open(ACM_IN, O_RDWR);
+                        
+                        do
+                        {
+                             input_fd = open(ACM_IN, O_RDWR);
+                             if(input_fd < 0)
+                             {
+                                 sleep(2);
+                             }
+                             printf("Opening sysfs input interface for polling: %s, r: %x\n",ACM_IN, input_fd);
+                        }while(input_fd < 0); //wait forever for the file to show up.  Driver provides it
                         sleep(1);
                     }
                 }
@@ -522,7 +533,10 @@ int main(void)
     struct thread_info *tinfo = calloc(2, sizeof(*tinfo));
 
     if(tinfo == NULL)
+    {
       printf("Failed to alloc tinfo\n");
+      exit(0);
+    }
     
     tinfo[0].thread_num = 1;
     tinfo[0].blocks = NULL;

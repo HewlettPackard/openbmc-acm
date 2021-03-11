@@ -49,7 +49,7 @@ void *pwm_thread(void *vargp)
                 strncat(&buff[1], ACM_PWM_FILE, 6); //add  /pwm0 file to the end
                 strncat(temp, buff, 7);
                 input_fd = open(temp, O_RDONLY);
-                if(input_fd > 0)
+                if(input_fd >= 0)
                    break;
                 printf("Opening sysfs input interface for polling fan pwm: %s, r: %s\n",temp, strerror(errno));
                 sleep(2);
@@ -65,7 +65,7 @@ void *pwm_thread(void *vargp)
             sz = read(input_fd, buff, 3);
             if(sz)
             {
-                pwm_val = strtol(buff, out_ptr, 10); 
+                pwm_val = strtol(buff, &out_ptr, 10); 
                  //timed out on poll but read anyway and look for new data
                  if(last_pwm_val != pwm_val)
                  {
@@ -79,7 +79,6 @@ void *pwm_thread(void *vargp)
                  }
                  else
                  {
-                    printf("No change in PWM value: %x, last: %x\n", pwm_val, last_pwm_val);
                     cnt++;
                     if(cnt > 256)
                     {
