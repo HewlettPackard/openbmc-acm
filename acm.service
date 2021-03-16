@@ -8,5 +8,5 @@ ExecStart=/usr/bin/env acm-poll
 SyslogIdentifier=acm-poll
 
 [Install]
-Wantedby=multi-user.target
+WantedBy=basic.target
 
