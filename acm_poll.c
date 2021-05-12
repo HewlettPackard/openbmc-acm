@@ -363,8 +363,8 @@ int acm_rd_req(unsigned short blk_num)
         req.cmd_size.req_size[1] = (acm_idx[blk_num].blk_size + 2) & 0x00ff;
         req.instruction = 0x2;  //Write
         memcpy(req.data, acm_idx[blk_num].blk_ptr, acm_idx[blk_num].blk_size);
-        printf("We got a read request. Send data to acm. Block: %x, size(big_endian): %x, data: %x %x %x %x\n", blk_num, req.cmd_size.big_end_req_sz,
-                   req.data[0], req.data[1], req.data[2], req.data[3]);
+        //printf("We got a read request. Send data to acm. Block: %x, size(big_endian): %x, data: %x %x %x %x\n", blk_num, req.cmd_size.big_end_req_sz,
+        //           req.data[0], req.data[1], req.data[2], req.data[3]);
 
         //Do file write to acm_out with requested data
         fp = open(ACM_OUT, O_RDWR);
@@ -372,7 +372,7 @@ int acm_rd_req(unsigned short blk_num)
         {
             //We can send data
             sz = write(fp, (void *)&req, acm_idx[blk_num].blk_size + 2 + 3); //cmd hdr + block num + block data
-            printf("We wrote %x bytes to ACM driver to send out(read request)\n", sz);
+            //printf("We wrote %x bytes to ACM driver to send out(read request)\n", sz);
             close(fp);
             return(0);
         }    
@@ -388,7 +388,7 @@ void acm_wr_req(unsigned short blk_num, unsigned short sz, unsigned char *buff)
     unsigned char out[512];
 
     //Update acm block data
-    printf("acm Write req to iLO from acm-blk: %x, sz: %x, data: %x %x %x %x\n", blk_num, sz, buff[0], buff[1], buff[2], buff[3]);
+    //printf("acm Write req to iLO from acm-blk: %x, sz: %x, data: %x %x %x %x\n", blk_num, sz, buff[0], buff[1], buff[2], buff[3]);
     if(blk_num <= ACM_MAX_BLOCK_NUM)
         memcpy(acm_idx[blk_num].blk_ptr, buff, (acm_idx[blk_num].blk_size > sz) ? sz : acm_idx[blk_num].blk_size);    
 }
@@ -446,7 +446,7 @@ void *poll_thread(void *vargp)
                 sz = read(input_fd, buff, sizeof(buff));  //read whole buffer in to process
                 indx = 0;
 
-                printf("Poll Received ACM request for %x bytes\n", sz);
+                //printf("Poll Received ACM request for %x bytes\n", sz);
                 if(sz >= 5)
                 {   
                     //Take first two bytes out of buffer as the block size + block num(2 bytes)
@@ -456,7 +456,7 @@ void *poll_thread(void *vargp)
                     if(req.cmd_size.big_end_req_sz + 3 == sz)
                     { //do size check on data read compared to size in command header + 3 for header
                         req.instruction = buff[indx++];
-                        printf("Read %x bytes, inst: %x, req size: %x\n", sz, req.instruction, req.cmd_size.big_end_req_sz);
+                        //printf("Read %x bytes, inst: %x, req size: %x\n", sz, req.instruction, req.cmd_size.big_end_req_sz);
                         //We have inst and block size.  Check if valid
                         switch(req.instruction)
                         {
@@ -477,7 +477,7 @@ void *poll_thread(void *vargp)
                                     req.block_num.blk_num[1] = buff[indx++];  //endian swap
                                     req.block_num.blk_num[0] = buff[indx++];
 
-                                    printf("Write request for blk_num: %x, size %x\n",
+                                    //printf("Write request for blk_num: %x, size %x\n",
                                            req.block_num.big_end_blk_num, req.cmd_size.big_end_req_sz);
                                     ptr = &buff[indx];
                                     
