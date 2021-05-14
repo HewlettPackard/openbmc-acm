@@ -465,7 +465,7 @@ void *poll_thread(void *vargp)
                                     req.block_num.blk_num[1] = buff[indx++];  //endian swap
                                     req.block_num.blk_num[0] = buff[indx++];
 
-                                    printf("Read request for block_num: %x\n",req.block_num.big_end_blk_num);
+                                    //printf("Read request for block_num: %x\n",req.block_num.big_end_blk_num);
                                     //process read request
                                     acm_rd_req(req.block_num.big_end_blk_num);
 //                                    sz = read(input_fd, data, 1);  //read 1 extra byte
@@ -478,7 +478,7 @@ void *poll_thread(void *vargp)
                                     req.block_num.blk_num[0] = buff[indx++];
 
                                     //printf("Write request for blk_num: %x, size %x\n",
-                                           req.block_num.big_end_blk_num, req.cmd_size.big_end_req_sz);
+                                    //       req.block_num.big_end_blk_num, req.cmd_size.big_end_req_sz);
                                     ptr = &buff[indx];
                                     
                                     acm_wr_req(req.block_num.big_end_blk_num, req.cmd_size.big_end_req_sz-2, ptr);
